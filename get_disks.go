@@ -29,14 +29,16 @@ func main() {
 			rdsk := fmt.Sprintf("/dev/rdsk/%s", string(d.Name()))
 			fd, e := syscall.Open(rdsk, syscall.O_RDONLY, 0600)
 			if e == nil {
-				_, _, err := syscall.Syscall(sysIoctl, uintptr(fd), DKIOCREMOVABLE, uintptr(unsafe.Pointer(&rmdsk)))
+				_, _, err := syscall.Syscall(sysIoctl, uintptr(fd),
+					DKIOCREMOVABLE, uintptr(unsafe.Pointer(&rmdsk)))
 				if err != 0 {
 					fmt.Println(err.Error())
 					return
 				}
 				if rmdsk == 0 {
 					var media dk_minfo
-					_, _, err = syscall.Syscall(sysIoctl, uintptr(fd), DKIOCGMEDIAINFO, uintptr(unsafe.Pointer(&media)))
+					_, _, err = syscall.Syscall(sysIoctl, uintptr(fd),
+						DKIOCGMEDIAINFO, uintptr(unsafe.Pointer(&media)))
 					if err != 0 {
 						fmt.Println(err.Error())
 						return
