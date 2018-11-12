@@ -21,35 +21,35 @@ type dk_minfo struct {
 }
 
 func main() {
-	dsk, _ := ioutil.ReadDir("/dev/dsk/")
-	for _, d := range dsk {
-		re := regexp.MustCompile(`c.*d0p0$`)
-		if re.MatchString(string(d.Name())) {
-			rmdsk := uint(0)
-			rdsk := fmt.Sprintf("/dev/rdsk/%s", string(d.Name()))
-			fd, e := syscall.Open(rdsk, syscall.O_RDONLY, 0600)
-			if e == nil {
-				_, _, err := syscall.Syscall(sysIoctl, uintptr(fd),
-					DKIOCREMOVABLE, uintptr(unsafe.Pointer(&rmdsk)))
-				if err != 0 {
-					fmt.Println(err.Error())
-					return
-				}
-				if rmdsk == 0 {
-					var media dk_minfo
-					_, _, err = syscall.Syscall(sysIoctl, uintptr(fd),
-						DKIOCGMEDIAINFO, uintptr(unsafe.Pointer(&media)))
-					if err != 0 {
-						fmt.Println(err.Error())
-						return
-					}
-					value := media.dki_capacity * C.longlong(media.dki_lbsize) / GB
-					dname := d.Name()[:len(d.Name())-2]
-					disk := fmt.Sprintf("%s %.2fGB", dname, float64(value))
-					fmt.Println(disk)
-				}
-			}
-			syscall.Close(fd)
+    dsk, _ := ioutil.ReadDir("/dev/dsk/")
+    for _, d := range dsk {
+        re := regexp.MustCompile(`c.*d0p0$`)
+	if re.MatchString(string(d.Name())) {
+	    rmdsk := uint(0)
+	    rdsk := fmt.Sprintf("/dev/rdsk/%s", string(d.Name()))
+	    fd, e := syscall.Open(rdsk, syscall.O_RDONLY, 0600)
+	    if e == nil {
+	        _, _, err := syscall.Syscall(sysIoctl, uintptr(fd),
+		DKIOCREMOVABLE, uintptr(unsafe.Pointer(&rmdsk)))
+	        if err != 0 {
+	            fmt.Println(err.Error())
+	            return
+	        }
+	        if rmdsk == 0 {
+		    var media dk_minfo
+		    _, _, err = syscall.Syscall(sysIoctl, uintptr(fd),
+		    DKIOCGMEDIAINFO, uintptr(unsafe.Pointer(&media)))
+		    if err != 0 {
+		        fmt.Println(err.Error())
+	                return
+		   }
+	           value := C.double(media.dki_capacity * C.longlong(media.dki_lbsize)) / GB
+		   dname := d.Name()[:len(d.Name())-2]
+		   disk := fmt.Sprintf("%s %7.2fGB", dname, float64(value))
+		   fmt.Println(disk)
 		}
+	    } 
+	    syscall.Close(fd)
 	}
+    }
 }
